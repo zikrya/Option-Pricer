@@ -47,6 +47,47 @@ function boxMullerTransform() {
   }
 
   ////////// Black Scholes Calculations
+  function americanCallOptionFDM(S, K, T, r, sigma, M, N) {
+    const Smax = 4 * S; // Increasing the stock price range to 4 times the current stock price
+    const dt = T / M; // Time step size
+    const ds = Smax / N; // Stock price step size
+    let V = Array.from({ length: N + 1 }, () => Array(M + 1).fill(0));
+
+    // Initial condition at maturity (payoff of the option)
+    for (let i = 0; i <= N; i++) {
+      V[i][M] = Math.max(i * ds - K, 0);
+    }
+
+    // Boundary conditions
+    for (let j = 0; j <= M; j++) {
+      V[0][j] = 0; // Value is 0 when the stock price is 0
+      V[N][j] = Smax - K * Math.exp(-r * (T - j * dt)); // Value when the stock price is at Smax
+    }
+
+    // Iterate over the grid backwards in time
+    for (let j = M - 1; j >= 0; j--) {
+      for (let i = 1; i < N; i++) {
+        const deltaPlus = V[i + 1][j + 1] - V[i][j + 1];
+        const deltaMinus = V[i][j + 1] - V[i - 1][j + 1];
+        const deltaSquared = V[i + 1][j + 1] - 2 * V[i][j + 1] + V[i - 1][j + 1];
+
+        // Calculate the value at this grid point
+        let value = V[i][j + 1] + dt * (0.5 * sigma * sigma * i * i * deltaSquared / (ds * ds) + r * i * deltaMinus / ds - r * V[i][j + 1]);
+
+        // Enforce the early exercise condition
+        V[i][j] = Math.max(value, i * ds - K);
+      }
+    }
+
+    // Option price is the value at the grid point corresponding to the current asset price
+    return V[Math.round(S / ds)][0];
+  }
+
+
+
+  /// Connections
+
+  /// Monte Carlo
   app.post('/monte-carlo', (req, res) => {
     try {
       const { stockPrice, strikePrice, volatility, riskFreeRate, timeToExpiration, simulations } = req.body;
@@ -74,6 +115,34 @@ function boxMullerTransform() {
       res.status(500).json({ error: 'Error during simulation' });
     }
 });
+////// Black Scholes
+app.post('/american-option-fdm', (req, res) => {
+    try {
+      const { stockPrice, strikePrice, timeToExpiration, riskFreeRate, volatility, spaceSteps, timeSteps } = req.body;
+
+      if (!stockPrice || !strikePrice || !volatility || !riskFreeRate || !timeToExpiration || !spaceSteps || !timeSteps) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      // Parse the inputs to ensure they are numbers
+      const parsedStockPrice = parseFloat(stockPrice);
+      const parsedStrikePrice = parseFloat(strikePrice);
+      const parsedVolatility = parseFloat(volatility);
+      const parsedRiskFreeRate = parseFloat(riskFreeRate);
+      const parsedTimeToExpiration = parseFloat(timeToExpiration);
+      const parsedSpaceSteps = parseInt(spaceSteps, 10);
+      const parsedTimeSteps = parseInt(timeSteps, 10);
+
+      // Call the FDM function for the American option with parsed inputs
+      const callPrice = americanCallOptionFDM(parsedStockPrice, parsedStrikePrice, parsedTimeToExpiration, parsedRiskFreeRate, parsedVolatility, parsedTimeSteps, parsedSpaceSteps);
+
+      res.json({ callPrice });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error calculating option price' });
+    }
+  });
+
 
   const PORT = 8020;
 
