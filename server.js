@@ -21,18 +21,22 @@ function boxMullerTransform() {
     const dt = timeToExpiration / 252; // Assuming 252 trading days in a year
     const discountFactor = Math.exp(-riskFreeRate * timeToExpiration);
 
+    let finalPrices = []; // Array to store final prices for each simulation
+
     for (let i = 0; i < simulations; i++) {
-      let pathPrice = stockPrice;
+        let pathPrice = stockPrice;
 
-      // Generate path
-      for (let t = 0; t < 252 * timeToExpiration; t++) {
-        const normRandom = boxMullerTransform();
-        pathPrice *= Math.exp((riskFreeRate - 0.5 * volatility * volatility) * dt + volatility * Math.sqrt(dt) * normRandom);
-      }
+        // Generate path
+        for (let t = 0; t < 252 * timeToExpiration; t++) {
+            const normRandom = boxMullerTransform();
+            pathPrice *= Math.exp((riskFreeRate - 0.5 * volatility * volatility) * dt + volatility * Math.sqrt(dt) * normRandom);
+        }
 
-      // Calculate payoffs for call and put
-      callPayoffs += Math.max(pathPrice - strikePrice, 0);
-      putPayoffs += Math.max(strikePrice - pathPrice, 0);
+        finalPrices.push(pathPrice); // Store the final price for this path
+
+        // Calculate payoffs for call and put
+        callPayoffs += Math.max(pathPrice - strikePrice, 0);
+        putPayoffs += Math.max(strikePrice - pathPrice, 0);
     }
 
     // Average the payoffs
@@ -43,8 +47,9 @@ function boxMullerTransform() {
     const callPrice = discountFactor * avgCallPayoff;
     const putPrice = discountFactor * avgPutPayoff;
 
-    return { callPrice, putPrice };
-  }
+    return { callPrice, putPrice, finalPrices }; // Include finalPrices in the return object
+}
+
 
   ////////// Black Scholes Calculations
   function americanCallOptionFDM(S, K, T, r, sigma, M, N) {
@@ -83,6 +88,37 @@ function boxMullerTransform() {
     return V[Math.round(S / ds)][0];
   }
 
+///// Binomial Option Pricing
+function americanCallOptionBinomialAdvanced(S, K, T, r, sigma, q, steps) {
+    const dt = T / steps; // Time step
+    const u = Math.exp(sigma * Math.sqrt(dt)); // Upward movement factor
+    const d = 1 / u; // Downward movement factor
+    const p = (Math.exp((r - q) * dt) - d) / (u - d); // Risk-neutral probability, adjusted for dividend yield
+
+    // Initialize asset prices at maturity
+    let prices = new Array(steps + 1);
+    for (let i = 0; i <= steps; i++) {
+      prices[i] = S * Math.pow(u, steps - i) * Math.pow(d, i);
+    }
+
+    // Initialize option values at maturity
+    let optionValues = new Array(steps + 1);
+    for (let i = 0; i <= steps; i++) {
+      optionValues[i] = Math.max(prices[i] - K, 0);
+    }
+
+    // Step back through the tree
+    for (let j = steps - 1; j >= 0; j--) {
+      for (let i = 0; i <= j; i++) {
+        prices[i] = prices[i] / u; // Asset price at this node
+        let exercise = prices[i] - K; // Intrinsic value (for early exercise)
+        let hold = Math.exp(-r * dt) * (p * optionValues[i] + (1 - p) * optionValues[i + 1]); // Value of holding the option
+        optionValues[i] = Math.max(exercise, hold); // American option value
+      }
+    }
+
+    return optionValues[0];
+  }
 
 
   /// Connections
@@ -116,30 +152,43 @@ function boxMullerTransform() {
     }
 });
 ////// Black Scholes
-app.post('/american-option-fdm', (req, res) => {
-    try {
-      const { stockPrice, strikePrice, timeToExpiration, riskFreeRate, volatility, spaceSteps, timeSteps } = req.body;
+app.post('/american-option-fdm-chart', (req, res) => {
+  try {
+      const { minStockPrice, maxStockPrice, stockPrice, strikePrice, timeToExpiration, riskFreeRate, volatility, spaceSteps, timeSteps } = req.body;
+      let prices = [];
+      let specificCallPrice = null;
 
-      if (!stockPrice || !strikePrice || !volatility || !riskFreeRate || !timeToExpiration || !spaceSteps || !timeSteps) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+      for (let S = minStockPrice; S <= maxStockPrice; S += (maxStockPrice - minStockPrice) / 100) {
+          const callPrice = americanCallOptionFDM(S, strikePrice, timeToExpiration, riskFreeRate, volatility, spaceSteps, timeSteps);
+          prices.push({ stockPrice: S, callPrice });
+
+          if (S === parseFloat(stockPrice)) {
+              specificCallPrice = callPrice;
+          }
       }
 
-      // Parse the inputs to ensure they are numbers
-      const parsedStockPrice = parseFloat(stockPrice);
-      const parsedStrikePrice = parseFloat(strikePrice);
-      const parsedVolatility = parseFloat(volatility);
-      const parsedRiskFreeRate = parseFloat(riskFreeRate);
-      const parsedTimeToExpiration = parseFloat(timeToExpiration);
-      const parsedSpaceSteps = parseInt(spaceSteps, 10);
-      const parsedTimeSteps = parseInt(timeSteps, 10);
+      res.json({ prices, specificCallPrice });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error calculating option prices' });
+  }
+});
 
-      // Call the FDM function for the American option with parsed inputs
-      const callPrice = americanCallOptionFDM(parsedStockPrice, parsedStrikePrice, parsedTimeToExpiration, parsedRiskFreeRate, parsedVolatility, parsedTimeSteps, parsedSpaceSteps);
+  ///// Binomial Option Pricing
+  app.post('/binomial-option-chart', (req, res) => {
+    try {
+      const { minStockPrice, maxStockPrice, strikePrice, timeToExpiration, riskFreeRate, volatility, dividendYield, steps } = req.body;
+      let prices = [];
 
-      res.json({ callPrice });
+      for (let S = minStockPrice; S <= maxStockPrice; S += (maxStockPrice - minStockPrice) / 100) {
+        const callPrice = americanCallOptionBinomialAdvanced(S, strikePrice, timeToExpiration, riskFreeRate, volatility, dividendYield, steps);
+        prices.push({ stockPrice: S, callPrice });
+      }
+
+      res.json(prices);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Error calculating option price' });
+      res.status(500).json({ error: 'Error calculating option prices' });
     }
   });
 

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Chart } from 'chart.js/auto'; // Import Chart.js
+import { Line } from 'react-chartjs-2'; // Import the chart type you need
 
 const MonteCarlo = () => {
     const [inputs, setInputs] = useState({
@@ -10,6 +12,7 @@ const MonteCarlo = () => {
         simulations: 10000,
     });
     const [result, setResult] = useState(null);
+    const [chartData, setChartData] = useState(null); // State for chart data
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -47,6 +50,22 @@ const MonteCarlo = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (result && result.finalPrices) {
+            // Prepare data for the chart
+            const data = {
+                labels: result.finalPrices.map((_, index) => index + 1),
+                datasets: [{
+                    label: 'Final Stock Prices',
+                    data: result.finalPrices,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            };
+            setChartData(data);
+        }
+    }, [result]);
 
     return (
         <>
@@ -87,6 +106,12 @@ const MonteCarlo = () => {
                         <p className="text-lg">Put Price: <span className="font-semibold">{result.putPrice.toFixed(2)}</span></p>
                     </div>
                 )}
+                 {chartData && (
+                <div className="max-w-md w-full mx-auto mt-8">
+                    <h2 className="text-center text-lg font-bold mb-4">Final Stock Prices Distribution</h2>
+                    <Line data={chartData} /> {/* Render the line chart */}
+                </div>
+            )}
             </div>
         </>
     );
