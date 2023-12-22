@@ -32,7 +32,7 @@ const BlackScholes = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8020/american-option-fdm-chart', {
+            const response = await fetch('http://localhost:8020/option-fdm-chart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -76,7 +76,7 @@ const BlackScholes = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-xl font-bold text-center mb-4">Black-Scholes Model</h1>
+            <h1 className="text-xl font-bold text-center mb-4">Finite Difference Model</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                     type="number"

@@ -15,7 +15,7 @@ function App() {
           <Routes>
             <Route exact path="/" element={<Home/>} />
             <Route exact path="/monte-carlo-simulation" element={<MonteCarlo/>} />
-            <Route exact path="/black-scholes-simulation" element={<BlackScholes/>} />
+            <Route exact path="/finite-difference-simulation" element={<BlackScholes/>} />
             <Route exact path="/binomial-option-simulation" element={<BinomialOptions/>} />
           </Routes>
         </Router>
