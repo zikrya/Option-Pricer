@@ -71,7 +71,7 @@ const MonteCarlo = () => {
         <>
             <div className="container mx-auto p-4">
                 <div className="max-w-md w-full mx-auto">
-                    <h1 className="text-4xl text-center font-bold mb-8">Monte Carlo Simulation</h1>
+                    <h1 className="text-xl font-bold text-center mb-4">Monte Carlo Simulation</h1>
                 </div>
                 <div>
                     <form onSubmit={handleSubmit} className="space-y-6">

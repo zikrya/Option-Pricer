@@ -12,6 +12,7 @@ function App() {
     <>
         <Router>
           <NavBar/>
+          <br />
           <Routes>
             <Route exact path="/" element={<Home/>} />
             <Route exact path="/monte-carlo-simulation" element={<MonteCarlo/>} />
