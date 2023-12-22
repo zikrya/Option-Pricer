@@ -9,7 +9,7 @@ app.use(cors());
 //////// Monte Carlo Calculations
 function boxMullerTransform() {
     let u = 0, v = 0;
-    while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+    while (u === 0) u = Math.random();
     while (v === 0) v = Math.random();
     return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   }
@@ -18,7 +18,7 @@ function boxMullerTransform() {
   function monteCarloSim(stockPrice, strikePrice, volatility, riskFreeRate, timeToExpiration, simulations) {
     let callPayoffs = 0;
     let putPayoffs = 0;
-    const dt = timeToExpiration / 252; // Assuming 252 trading days in a year
+    const dt = timeToExpiration / 252;
     const discountFactor = Math.exp(-riskFreeRate * timeToExpiration);
 
     let finalPrices = []; // Array to store final prices for each simulation
@@ -63,7 +63,6 @@ function boxMullerTransform() {
       V[i][M] = Math.max(i * ds - K, 0);
     }
 
-    // Boundary conditions
     for (let j = 0; j <= M; j++) {
       V[0][j] = 0; // Value is 0 when the stock price is 0
       V[N][j] = Smax - K * Math.exp(-r * (T - j * dt)); // Value when the stock price is at Smax

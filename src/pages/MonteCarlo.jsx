@@ -69,11 +69,11 @@ const MonteCarlo = () => {
 
     return (
         <>
-            <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
+            <div className="container mx-auto p-4">
                 <div className="max-w-md w-full mx-auto">
                     <h1 className="text-4xl text-center font-bold mb-8">Monte Carlo Simulation</h1>
                 </div>
-                <div className="max-w-md w-full mx-auto mt-4 bg-white p-8 border border-gray-300">
+                <div>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <input type="number" name="stockPrice" value={inputs.stockPrice} onChange={handleChange}
                                className="w-full p-2 border border-gray-300 rounded mt-1"
