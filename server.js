@@ -51,8 +51,8 @@ function boxMullerTransform() {
 }
 
 
-  ////////// Black Scholes Calculations
-  function americanCallOptionFDM(S, K, T, r, sigma, M, N) {
+  ////////// Finite Difference Model
+  function CallOptionFDM(S, K, T, r, sigma, M, N) {
     const Smax = 4 * S; // Increasing the stock price range to 4 times the current stock price
     const dt = T / M; // Time step size
     const ds = Smax / N; // Stock price step size
@@ -89,7 +89,7 @@ function boxMullerTransform() {
   }
 
 ///// Binomial Option Pricing
-function americanCallOptionBinomialAdvanced(S, K, T, r, sigma, q, steps) {
+function callOptionBinomialAdvanced(S, K, T, r, sigma, q, steps) {
     const dt = T / steps; // Time step
     const u = Math.exp(sigma * Math.sqrt(dt)); // Upward movement factor
     const d = 1 / u; // Downward movement factor
@@ -152,14 +152,14 @@ function americanCallOptionBinomialAdvanced(S, K, T, r, sigma, q, steps) {
     }
 });
 ////// Black Scholes
-app.post('/american-option-fdm-chart', (req, res) => {
+app.post('/option-fdm-chart', (req, res) => {
   try {
       const { minStockPrice, maxStockPrice, stockPrice, strikePrice, timeToExpiration, riskFreeRate, volatility, spaceSteps, timeSteps } = req.body;
       let prices = [];
       let specificCallPrice = null;
 
       for (let S = minStockPrice; S <= maxStockPrice; S += (maxStockPrice - minStockPrice) / 100) {
-          const callPrice = americanCallOptionFDM(S, strikePrice, timeToExpiration, riskFreeRate, volatility, spaceSteps, timeSteps);
+          const callPrice = CallOptionFDM(S, strikePrice, timeToExpiration, riskFreeRate, volatility, spaceSteps, timeSteps);
           prices.push({ stockPrice: S, callPrice });
 
           if (S === parseFloat(stockPrice)) {
@@ -181,7 +181,7 @@ app.post('/american-option-fdm-chart', (req, res) => {
       let prices = [];
 
       for (let S = minStockPrice; S <= maxStockPrice; S += (maxStockPrice - minStockPrice) / 100) {
-        const callPrice = americanCallOptionBinomialAdvanced(S, strikePrice, timeToExpiration, riskFreeRate, volatility, dividendYield, steps);
+        const callPrice = callOptionBinomialAdvanced(S, strikePrice, timeToExpiration, riskFreeRate, volatility, dividendYield, steps);
         prices.push({ stockPrice: S, callPrice });
       }
 
