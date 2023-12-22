@@ -8,19 +8,19 @@ const features = [
       title: 'Monte Carlo',
       description:
         "The Monte Carlo model simulates numerous potential paths for an asset's price, using random variables to model market uncertainties and predict option values.",
-      image: null,
+        image: '/montecarlo.png',
     },
     {
       title: 'Finite Difference Method',
       description:
         "The Finite Difference Method systematically computes option prices by creating a grid of potential asset values over time, applying differential equations to capture price sensitivities and market dynamics",
-      image: null,
+      image: './fdm.png',
     },
     {
       title: 'Binomial Option Pricing Model',
       description:
         "The Binomial Option Pricing Model leverages a step-by-step approach, projecting numerous possible paths an asset's price could take, and calculates the option's value at each node using risk-neutral valuation, offering a straightforward yet powerful method for option pricing.",
-      image: null,
+      image: './binomial.png',
     },
   ]
 
