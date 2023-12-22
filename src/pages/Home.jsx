@@ -1,7 +1,11 @@
+import HomeGuide from "../components/HomeGuide";
+import HomeIntro from "../components/HomeIntro";
+
 const Home = () => {
     return (
         <>
-        <h1 className="text-4xl">Home</h1>
+        <HomeIntro/>
+        <HomeGuide/>
         </>
      );
 }
