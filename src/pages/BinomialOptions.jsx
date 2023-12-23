@@ -32,7 +32,6 @@ const BinomialOptions = () => {
         setLoading(true);
 
         try {
-            // Fetch the option prices for a range of stock prices
             const response = await fetch('http://localhost:8020/binomial-option-chart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -54,7 +53,6 @@ const BinomialOptions = () => {
 
             const data = await response.json();
 
-            // Prepare data for the chart
             const chartData = {
                 labels: data.map(item => item.stockPrice.toFixed(2)),
                 datasets: [{

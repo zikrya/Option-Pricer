@@ -8,8 +8,8 @@ const BlackScholes = () => {
         volatility: '',
         riskFreeRate: '',
         timeToExpiration: '',
-        spaceSteps: '100', // Default value for space grid steps
-        timeSteps: '100',  // Default value for time grid steps
+        spaceSteps: '100',
+        timeSteps: '100',
     });
     const [result, setResult] = useState(null);
     const [chartData, setChartData] = useState(null);

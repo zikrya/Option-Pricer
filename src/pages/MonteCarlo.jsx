@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Chart } from 'chart.js/auto'; // Import Chart.js
-import { Line } from 'react-chartjs-2'; // Import the chart type you need
+import { Chart } from 'chart.js/auto';
+import { Line } from 'react-chartjs-2';
 
 const MonteCarlo = () => {
     const [inputs, setInputs] = useState({
@@ -12,7 +12,7 @@ const MonteCarlo = () => {
         simulations: 10000,
     });
     const [result, setResult] = useState(null);
-    const [chartData, setChartData] = useState(null); // State for chart data
+    const [chartData, setChartData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -53,7 +53,6 @@ const MonteCarlo = () => {
 
     useEffect(() => {
         if (result && result.finalPrices) {
-            // Prepare data for the chart
             const data = {
                 labels: result.finalPrices.map((_, index) => index + 1),
                 datasets: [{
